@@ -1,0 +1,56 @@
+grammar org.xtext.comp.Wh with org.eclipse.xtext.common.Terminals
+
+generate wh "http://www.xtext.org/comp/Wh"
+
+Wh :
+    (elements+=Program)*;
+  
+ 
+Program: 
+	'function' name=ID ':' definition=Definition 
+;
+
+Definition:
+	'read' input=Input '%' command=Commands '%' 'write' output=Output
+;
+
+Input:
+	vars+=VARIABLE (',' vars+=VARIABLE)*
+;
+
+Output:
+	vars+=VARIABLE (',' vars+=VARIABLE)*
+;
+
+Commands:
+	commands+=Command (';' commands+=Command)*
+;
+
+Command:
+   cmd=(Nop | Affect)
+;
+
+Nop:
+	nop='nop'
+;
+
+Affect:
+	vars+=VARIABLE (',' vars+=VARIABLE)* ':=' exprs+=Expr (',' exprs+=Expr)*
+;
+
+
+Expr:
+	ExprSimple
+;
+
+ExprSimple:
+	'nil' | VARIABLE
+;
+
+ExprAnd:
+	'TODO'
+;
+
+terminal VARIABLE:
+	'A'..'Z' ID
+;
