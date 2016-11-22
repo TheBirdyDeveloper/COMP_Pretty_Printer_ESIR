@@ -18,6 +18,7 @@ import org.xtext.comp.wh.Program
 import org.xtext.comp.wh.Wh
 import org.xtext.comp.wh.impl.AffectImpl
 import org.xtext.comp.wh.impl.NopImpl
+import org.xtext.comp.wh.impl.IfImpl
 
 /**
  * Generates code from your model files on save.
@@ -39,24 +40,24 @@ class WhGenerator extends AbstractGenerator {
 	}
 	
 	def prettyPrint(Wh file)'''
-	«FOR prog : file.elements»
-	«prog.prettyPrint»
+	Â«FOR prog : file.elementsÂ»
+	Â«prog.prettyPrintÂ»
 	
-	«ENDFOR»
+	Â«ENDFORÂ»
 	'''
 	
 	
 	def prettyPrint(Program p) '''
-            function «p.name»:
-            «p.definition.prettyPrint»
+            function Â«p.nameÂ»:
+            Â«p.definition.prettyPrintÂ»
         '''
                  
     def prettyPrint(Definition d) ''' 
-    	read «d.input.prettyPrint»
+    	read Â«d.input.prettyPrintÂ»
     	%
-    	    «d.command.prettyPrint»
+    	    Â«d.command.prettyPrintÂ»
     	%
-    	write «d.output.prettyPrint»
+    	write Â«d.output.prettyPrintÂ»
     '''
     
     def prettyPrint(Input i) {
@@ -86,9 +87,25 @@ class WhGenerator extends AbstractGenerator {
        	if( c.cmd instanceof AffectImpl ) {
     		return (c.cmd as AffectImpl).prettyPrint
        	}
+       	
+       	if( c.cmd instanceof IfImpl ) {
+    		return (c.cmd as IfImpl).prettyPrint
+       	}
     }
     
-    def prettyPrint( NopImpl n ) '''«n.nop»'''
+    def prettyPrint( NopImpl n ) '''Â«n.nopÂ»'''
+    
+    def String prettyPrint( IfImpl i){
+    	var res = "if "
+    	res += i.expr
+    	res += "\nthen "
+    	res += i.commands1
+    	res += "\nelse "
+    	res += i.commands2
+    	res += "\nfi"
+    	
+    	return res
+    }
     
     def String prettyPrint(AffectImpl a) {
     	var res = printList(a.vars,",")
@@ -110,6 +127,7 @@ class WhGenerator extends AbstractGenerator {
     	return res
     }
 }
+
 
 
 
