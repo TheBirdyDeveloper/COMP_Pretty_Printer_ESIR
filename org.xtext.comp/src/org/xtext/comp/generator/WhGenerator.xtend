@@ -98,10 +98,10 @@ class WhGenerator extends AbstractGenerator {
     def String prettyPrint( IfImpl i){
     	var res = "if "
     	res += i.expr
-    	res += "\nthen "
-    	res += i.commands1
-    	res += "\nelse "
-    	res += i.commands2
+    	res += "\n   then "
+    	res += i.commands1.prettyPrint
+    	res += "\n   else "
+    	res += i.commands2.prettyPrint
     	res += "\nfi"
     	
     	return res
