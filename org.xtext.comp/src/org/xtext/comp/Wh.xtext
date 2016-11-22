@@ -27,7 +27,11 @@ Commands:
 ;
 
 Command:
-   cmd=(Nop | Affect)
+   cmd=(Nop | Affect | If)
+;
+
+If:
+	'if' expr=Expr 'then' commands1=Commands 'else' commands2=Commands 'fi'
 ;
 
 Nop:
@@ -40,17 +44,22 @@ Affect:
 
 
 Expr:
-	ExprSimple
+	ExprAnd
 ;
 
 ExprSimple:
-	'nil' | VARIABLE
+	'nil' | VARIABLE | SYMBOLE
 ;
 
 ExprAnd:
-	'TODO'
+	(ExprSimple 'and' ExprAnd) | ExprSimple
 ;
+
 
 terminal VARIABLE:
 	'A'..'Z' ID
+;
+
+terminal SYMBOLE:
+	'a'..'z' ID
 ;
