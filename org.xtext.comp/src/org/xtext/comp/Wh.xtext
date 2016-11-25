@@ -44,22 +44,21 @@ Affect:
 
 
 Expr:
-	ExprAnd
+	exprAnd = ExprAnd | exprOr = ExprOr | exprSimple =ExprSimple
 ;
 
 ExprSimple:
-	'nil' | VARIABLE | SYMBOLE
+	nil='nil' | value = VARIABLE
 ;
 
 ExprAnd:
-	(ExprSimple 'and' ExprAnd) | ExprSimple
+	(arg1=ExprSimple 'and' arg2=Expr)
 ;
 
+ExprOr:
+	(arg1=ExprSimple 'or' arg2=Expr)
+;
 
 terminal VARIABLE:
 	'A'..'Z' ID
-;
-
-terminal SYMBOLE:
-	'a'..'z' ID
 ;
