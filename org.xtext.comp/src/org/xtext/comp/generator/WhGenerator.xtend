@@ -19,6 +19,11 @@ import org.xtext.comp.wh.Wh
 import org.xtext.comp.wh.impl.AffectImpl
 import org.xtext.comp.wh.impl.NopImpl
 import org.xtext.comp.wh.impl.IfImpl
+import org.xtext.comp.wh.impl.ExprAndImpl
+import org.xtext.comp.wh.impl.ExprImpl
+import org.xtext.comp.wh.Expr
+import org.xtext.comp.wh.impl.ExprOrImpl
+import org.xtext.comp.wh.impl.ExprSimpleImpl
 
 /**
  * Generates code from your model files on save.
@@ -55,7 +60,7 @@ class WhGenerator extends AbstractGenerator {
     def prettyPrint(Definition d) ''' 
     	read «d.input.prettyPrint»
     	%
-    	    «d.command.prettyPrint»
+    	    «d.command.prettyPrint(0)»
     	%
     	write «d.output.prettyPrint»
     '''
@@ -68,18 +73,18 @@ class WhGenerator extends AbstractGenerator {
     	return printList(o.vars,",")
     }
     
-    def String prettyPrint(Commands cmds){
+    def String prettyPrint(Commands cmds, int a){
     	var res = "";
     	if(cmds.commands.size > 1){
     		for(i:0..cmds.commands.size-2){
-    			res += cmds.commands.get(i).prettyPrint+" ;\n"
+    			res += cmds.commands.get(i).prettyPrint(a)+" ;\n"
     		}
     	}
-    	res += cmds.commands.get(cmds.commands.size-1).prettyPrint
+    	res += cmds.commands.get(cmds.commands.size-1).prettyPrint(a)
     	return res
     }
     
-    def prettyPrint(Command c) {
+    def prettyPrint(Command c, int a) {
     	if( c.cmd instanceof NopImpl ) {
     		return (c.cmd as NopImpl).prettyPrint
        	} 
@@ -89,13 +94,13 @@ class WhGenerator extends AbstractGenerator {
        	}
        	
        	if( c.cmd instanceof IfImpl ) {
-    		return (c.cmd as IfImpl).prettyPrint
+    		return (c.cmd as IfImpl).prettyPrint(a)
        	}
     }
     
     def prettyPrint( NopImpl n ) '''«n.nop»'''
     
-    def String prettyPrint( IfImpl i){
+    /*def String prettyPrint( IfImpl i){
     	var res = "if "
     	res += i.expr
     	res += "\n   then "
@@ -105,13 +110,100 @@ class WhGenerator extends AbstractGenerator {
     	res += "\nfi"
     	
     	return res
+    }*/
+    	
+    def String prettyPrint( Expr e, int indent){
+    	if( e.exprSimple != null ) {
+    		return (e.exprSimple as ExprSimpleImpl).prettyPrint(indent)
+       	} 
+       	
+       	if( e.exprAnd != null ) {
+    		return (e.exprAnd as ExprAndImpl).prettyPrint(indent)
+       	}
+       	
+       	if( e.exprOr != null ) {
+    		return (e.exprOr as ExprOrImpl).prettyPrint(indent)
+       	}
+       	return "TEST null pour Expr"
+    	}
+    	
+    	
+    	def String prettyPrint( ExprSimpleImpl e, int indent){
+    		if(e.nil == null){
+    			return e.value
+    		}
+    		return "nil"
+    	}
+    	
+    	def String prettyPrint( ExprAndImpl e, int indent){
+    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint(indent) + " and " + e.arg2.prettyPrint(indent) + ")"
+    	}
+    	
+    	def String prettyPrint( ExprOrImpl e, int indent){
+    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint(indent) + " or " + e.arg2.prettyPrint(indent) + ")"
+    	}
+    	
+    	
+    
+    def String prettyPrint( IfImpl i, int indent){
+    	var res = ""
+    	var currentif = 0
+    	while (currentif < indent){
+    		res += "   "
+    		currentif+=1
+    	}
+    	res += "if "
+    	
+    	res += i.expr.prettyPrint(indent)
+    	
+    	res += " then\n"
+    	res += i.commands1.prettyPrint(indent+1)
+    	res+= "\n"
+    	
+    	var currentElse = 0
+    	while (currentElse < indent){
+    		res += "   "
+    		currentElse+=1
+    	}
+    	res += "else\n"
+    	
+    	res += i.commands2.prettyPrint(indent+1)
+    	res+= "\n"
+    	
+		var fi = 0
+    	while (fi < indent){
+    		res += "   "
+    		fi+=1
+    	}
+    	res += "fi"
+    	
+    	return res
     }
     
+    
     def String prettyPrint(AffectImpl a) {
-    	var res = printList(a.vars,",")
+    	var res = printList(a.vars,", ")
     	res += " := "
-    	res += printList(a.exprs,",")
     	
+    	var list = a.exprs
+    	for(i:0..list.size-1){
+    		println(list.get(i).class)
+    	}
+    	
+    	res += printListExpr(a.exprs,", ")
+    	
+    	return res
+    }
+    
+     def String printListExpr(EList<Expr> list, String delim){
+	
+     	var res = ""
+     	if(list.size > 1){
+     		for(i:0..list.size-2){
+    			res+= list.get(i).prettyPrint(0)+delim
+    		}
+    	}
+    	res += list.get(list.size-1).prettyPrint(0)
     	return res
     }
     
@@ -127,7 +219,3 @@ class WhGenerator extends AbstractGenerator {
     	return res
     }
 }
-
-
-
-
