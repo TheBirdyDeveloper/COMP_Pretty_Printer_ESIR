@@ -23,43 +23,35 @@ import com.google.inject.Injector;
 import com.google.inject.Provider;
 
 public class Main {
-
+	
+	private static final short DEFAULT_IF_INDENT = 4;
+	private static final short DEFAULT_COMMAND_INDENT = 4;
+	private static final short DEFAULT_WHILE_INDENT = 4;
+	private static final short DEFAULT_FOR_INDENT = 4;
+	
+	private static short IF_INDENT = DEFAULT_IF_INDENT;
+	private static short COMMAND_INDENT = DEFAULT_COMMAND_INDENT;
+	private static short WHILE_INDENT = DEFAULT_WHILE_INDENT;
+	private static short FOR_INDENT = DEFAULT_FOR_INDENT;
+	
+	private static final String DEFAULT_NAME = "f.whpp";
+	private static String inputFileName;
+	private static String outputFileName = DEFAULT_NAME;
+	
+	private static final CommandLineParser parser = new GnuParser();
+	private static final HelpFormatter formatter = new HelpFormatter();
+	private static final Options options  = new Options();
+	private static CommandLine cmd;
+	
 	public static void main(String[] args) {
 
 		Injector injector = new WhStandaloneSetup().createInjectorAndDoEMFRegistration();
 		Main main = injector.getInstance(Main.class);
 		
-		Options options = new Options();
+		int error = optionManager(args);
+		if(error != 0) return;
 		
-		Option output = new Option("o","output",true,"output file");
-		options.addOption(output);
-		Option input = new Option("i","input",true,"input file");
-		input.setRequired(true);
-		options.addOption(input);
-		
-		CommandLineParser parser = new GnuParser();
-		HelpFormatter formatter = new HelpFormatter();
-		CommandLine cmd;
-		
-		 try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            formatter.printHelp("whpp", options);
-
-            System.exit(1);
-            return;
-        }
-		 
-		 
-		String inputFile = cmd.getOptionValue("input");
-		
-		String outputFile = cmd.getOptionValue("output");
-		if(outputFile == null ){
-			outputFile = "f.whpp";
-		}
-		
-		main.runGenerator(inputFile,outputFile);
+		main.runGenerator();
 	}
 
 	@Inject
@@ -74,10 +66,10 @@ public class Main {
 	@Inject 
 	private JavaIoFileSystemAccess fileAccess;
 
-	protected void runGenerator(String inputName, String outputName) {
+	protected void runGenerator() {
 		// Load the resource
 		ResourceSet set = resourceSetProvider.get();
-		Resource resource = set.getResource(URI.createFileURI(inputName), true);
+		Resource resource = set.getResource(URI.createFileURI(inputFileName), true);
 
 		// Validate the resource
 		List<Issue> list = validator.validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
@@ -89,15 +81,120 @@ public class Main {
 		}
 
 		// Configure and start the generator
-		System.out.println(outputName);
-		fileAccess.setOutputPath("src-gen/");
+		fileAccess.setOutputPath("./");
 
 		GeneratorContext context = new GeneratorContext();
 		context.setCancelIndicator(CancelIndicator.NullImpl);
 		
 		WhGenerator wh = new WhGenerator();
-		wh.doGenerate(resource, fileAccess, context, outputName);
+		wh.doGenerate(resource, fileAccess, context, outputFileName, IF_INDENT, COMMAND_INDENT, WHILE_INDENT, FOR_INDENT);
+	}
+	
+	private static void printMan(){
+		String separation = "\n\n";
+		String man = "";
+		String NAME = "\twhpp - While Pretty Printer";
+		String SYNOPSIS = "\twhpp [OPTIONS]...";
+		String DESC = "\twhpp permet de pretty printer un fichier While";
+		String OPT = "\t\t-i, --input file\n\t\t\tfichier d'entrée à pretty printer\n"
+				+ "\t\t-o, --output file\n\t\t\tnom du fichier de sortie\n"
+				+ "\t\t-h, --help\n\t\t\taffiche l'aide";
+		String BUGS = "";
+		String SEE = "";
+		String AUTHORS = "\tÉcrit par Clément Guihaire - Pierre Marais - Mathieu Menuet - Marc Perret - Olivier Peurichard";
+		
+		man = "NOM\n"+NAME+separation+"SYNOPSIS\n"+SYNOPSIS+separation+"DESCRIPTION\n"+DESC+separation+"OPTIONS\n"+OPT+separation+"BUGS\n"
+				+BUGS+separation+"AUTEURS\n"+AUTHORS+separation+"VOIR AUSSI\n"+SEE;
+		System.out.println(man);
+	}
+	
+	/**
+	 * 
+	 * @param args arguments du Main
+	 * @return -1 si erreur d'arguments; 1 si affichage de l'aide; 0 si pas d'erreur
+	 */
+	private static int optionManager(String[] args){
+		
+		
+		Option help = new Option("h","help",false,"help");
+		options.addOption(help);
+		Option output = new Option("o","output",true,"output file");
+		options.addOption(output);
+		Option input = new Option("i","input",true,"input file");
+		options.addOption(input);
+		Option cmdIndent = new Option("c","cmdIndent",true,"command Indentation");
+		options.addOption(cmdIndent);
+		Option ifIndent = new Option("if","ifIndent",true,"if Indentation");
+		options.addOption(ifIndent);
+		Option forIndent = new Option("for","forIndent",true,"for Indentation");
+		options.addOption(forIndent);
+		Option whIndent = new Option("wh","whIndent",true,"while Indentation");
+		options.addOption(whIndent);
+		
+		
+		
+		 try {
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            displayError(e.getMessage());
+            return -1;
+        }
+		 
+		boolean helpParam = cmd.hasOption("help");
+		if(helpParam){
+			printMan();
+			return 1;
+		}
+		
+		boolean inputFile = cmd.hasOption("input");
+		if(!inputFile){
+			displayError("Missing option : i");
+			return -1;
+		}
+		
+		inputFileName = cmd.getOptionValue("input");
+		
+		String outputFile = cmd.getOptionValue("output");
+		if(outputFile != null ){
+			outputFileName = outputFile;
+		}
+		
+		short returnedValue1 = checkIndentOptions("ifIndent");
+		short returnedValue2 = checkIndentOptions("forIndent");
+		short returnedValue3 = checkIndentOptions("whIndent");
+		short returnedValue4 = checkIndentOptions("cmdIndent");
+		
+		if( -1 == returnedValue1 || -1 == returnedValue2
+			|| -1 == returnedValue3  || -1 == returnedValue4 ){
+			
+			displayError("indentations must be >= 0");
+			return -1;
+		}
+		if(returnedValue1 != -2) IF_INDENT = returnedValue1;
+		if(returnedValue2 != -2) FOR_INDENT = returnedValue2;
+		if(returnedValue3 != -2) WHILE_INDENT = returnedValue3;
+		if(returnedValue4 != -2) COMMAND_INDENT = returnedValue4;
 
-		System.out.println("Code generation finished.");
+		
+		return 0;
+	}
+	
+	private static short checkIndentOptions(String param){
+		if((param = cmd.getOptionValue(param)) != null){
+			short intValue;
+			if((intValue = Short.parseShort(param)) < 0){
+				return -1;
+			} else {
+				return intValue;
+			}
+		}
+		
+		return -2;
+	}
+	
+	private static void displayError(String msg){
+		System.out.println(msg);
+		formatter.printHelp("whpp", options);
+        System.exit(1);
 	}
 }

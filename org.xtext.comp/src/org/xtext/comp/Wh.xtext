@@ -11,7 +11,7 @@ Program:
 ;
 
 Definition:
-	'read' input=Input '%' command=Commands '%' 'write' output=Output
+	'read' input=Input '%' commands=Commands '%' 'write' output=Output
 ;
 
 Input:
@@ -31,8 +31,9 @@ Command:
 ;
 
 If:
-	'if' expr=Expr 'then' commands1=Commands 'else' commands2=Commands 'fi'
+	'if' expr=Expr 'then' commands1=Commands ('else' commands2=Commands)? 'fi'
 ;
+
 
 Nop:
 	nop='nop'

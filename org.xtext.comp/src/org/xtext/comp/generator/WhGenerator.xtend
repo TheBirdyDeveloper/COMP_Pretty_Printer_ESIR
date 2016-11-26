@@ -4,7 +4,6 @@
 package org.xtext.comp.generator
 
 import org.eclipse.emf.common.util.EList
-import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
@@ -12,18 +11,17 @@ import org.eclipse.xtext.generator.IGeneratorContext
 import org.xtext.comp.wh.Command
 import org.xtext.comp.wh.Commands
 import org.xtext.comp.wh.Definition
+import org.xtext.comp.wh.Expr
 import org.xtext.comp.wh.Input
 import org.xtext.comp.wh.Output
 import org.xtext.comp.wh.Program
 import org.xtext.comp.wh.Wh
 import org.xtext.comp.wh.impl.AffectImpl
-import org.xtext.comp.wh.impl.NopImpl
-import org.xtext.comp.wh.impl.IfImpl
 import org.xtext.comp.wh.impl.ExprAndImpl
-import org.xtext.comp.wh.impl.ExprImpl
-import org.xtext.comp.wh.Expr
 import org.xtext.comp.wh.impl.ExprOrImpl
 import org.xtext.comp.wh.impl.ExprSimpleImpl
+import org.xtext.comp.wh.impl.IfImpl
+import org.xtext.comp.wh.impl.NopImpl
 
 /**
  * Generates code from your model files on save.
@@ -31,38 +29,43 @@ import org.xtext.comp.wh.impl.ExprSimpleImpl
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#code-generation
  */
 class WhGenerator extends AbstractGenerator {
-
+	int ifIndent;
+	int commandIndent;
+	int whileIndent;
+	int forIndent;
+	
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		for (file : resource.allContents.toIterable.filter(Wh)) {
-        	fsa.generateFile("f.whpp", file.prettyPrint)
-    	}
+		//N'est pas utilisée
 	}
 	
-	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, String outputName) {
+	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, String outputName, int ifIndent, int commandIndent, int whileIndent, int forIndent) {
+		this.ifIndent = ifIndent;
+		this.commandIndent = commandIndent;
+		this.whileIndent = whileIndent;
+		this.forIndent = forIndent;
 		for (file : resource.allContents.toIterable.filter(Wh)) {
         	fsa.generateFile(outputName, file.prettyPrint)
     	}
 	}
 	
 	def prettyPrint(Wh file)'''
-	Â«FOR prog : file.elementsÂ»
-	Â«prog.prettyPrintÂ»
-	
-	Â«ENDFORÂ»
+	«FOR prog : file.elements»
+	«prog.prettyPrint»
+	«ENDFOR»
 	'''
 	
 	
 	def prettyPrint(Program p) '''
-            function Â«p.nameÂ»:
-            Â«p.definition.prettyPrintÂ»
+            function «p.name»:
+            «p.definition.prettyPrint»
         '''
                  
     def prettyPrint(Definition d) ''' 
-    	read Â«d.input.prettyPrintÂ»
+    	read «d.input.prettyPrint»
     	%
-    	    Â«d.command.prettyPrint(0)Â»
+    	«d.commands.prettyPrint(commandIndent)»
     	%
-    	write Â«d.output.prettyPrintÂ»
+    	write «d.output.prettyPrint»
     '''
     
     def prettyPrint(Input i) {
@@ -73,113 +76,80 @@ class WhGenerator extends AbstractGenerator {
     	return printList(o.vars,",")
     }
     
-    def String prettyPrint(Commands cmds, int a){
+    def String prettyPrint(Commands cmds, int pIndent){
     	var res = "";
     	if(cmds.commands.size > 1){
     		for(i:0..cmds.commands.size-2){
-    			res += cmds.commands.get(i).prettyPrint(a)+" ;\n"
+    			res += cmds.commands.get(i).prettyPrint(pIndent)+" ;\n"
     		}
     	}
-    	res += cmds.commands.get(cmds.commands.size-1).prettyPrint(a)
+    	res += cmds.commands.get(cmds.commands.size-1).prettyPrint(pIndent)
     	return res
     }
     
-    def prettyPrint(Command c, int a) {
+    def prettyPrint(Command c, int pIndent) {
     	if( c.cmd instanceof NopImpl ) {
-    		return (c.cmd as NopImpl).prettyPrint
+    		return (c.cmd as NopImpl).prettyPrint(pIndent)
        	} 
        	
        	if( c.cmd instanceof AffectImpl ) {
-    		return (c.cmd as AffectImpl).prettyPrint
+    		return (c.cmd as AffectImpl).prettyPrint()
        	}
        	
        	if( c.cmd instanceof IfImpl ) {
-    		return (c.cmd as IfImpl).prettyPrint(a)
+    		return (c.cmd as IfImpl).prettyPrint(pIndent)
        	}
     }
     
-    def prettyPrint( NopImpl n ) '''Â«n.nopÂ»'''
-    
-    /*def String prettyPrint( IfImpl i){
-    	var res = "if "
-    	res += i.expr
-    	res += "\n   then "
-    	res += i.commands1.prettyPrint
-    	res += "\n   else "
-    	res += i.commands2.prettyPrint
-    	res += "\nfi"
+    def prettyPrint( NopImpl n , int pIndent) '''«makeIndent(pIndent)»«n.nop»'''
     	
-    	return res
-    }*/
-    	
-    def String prettyPrint( Expr e, int indent){
+    def String prettyPrint( Expr e){
     	if( e.exprSimple != null ) {
-    		return (e.exprSimple as ExprSimpleImpl).prettyPrint(indent)
+    		return (e.exprSimple as ExprSimpleImpl).prettyPrint()
        	} 
        	
        	if( e.exprAnd != null ) {
-    		return (e.exprAnd as ExprAndImpl).prettyPrint(indent)
+    		return (e.exprAnd as ExprAndImpl).prettyPrint()
        	}
        	
        	if( e.exprOr != null ) {
-    		return (e.exprOr as ExprOrImpl).prettyPrint(indent)
+    		return (e.exprOr as ExprOrImpl).prettyPrint()
        	}
        	return "TEST null pour Expr"
     	}
     	
     	
-    	def String prettyPrint( ExprSimpleImpl e, int indent){
+    	def String prettyPrint( ExprSimpleImpl e){
     		if(e.nil == null){
     			return e.value
     		}
     		return "nil"
     	}
     	
-    	def String prettyPrint( ExprAndImpl e, int indent){
-    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint(indent) + " and " + e.arg2.prettyPrint(indent) + ")"
+    	def String prettyPrint( ExprAndImpl e){
+    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint() + " and " + e.arg2.prettyPrint() + ")"
     	}
     	
-    	def String prettyPrint( ExprOrImpl e, int indent){
-    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint(indent) + " or " + e.arg2.prettyPrint(indent) + ")"
+    	def String prettyPrint( ExprOrImpl e){
+    		return "("+ (e.arg1 as ExprSimpleImpl).prettyPrint() + " or " + e.arg2.prettyPrint() + ")"
     	}
     	
     	
     
-    def String prettyPrint( IfImpl i, int indent){
-    	var res = ""
-    	var currentif = 0
-    	while (currentif < indent){
-    		res += "   "
-    		currentif+=1
+    def String prettyPrint( IfImpl i, int pIndent){
+    	var parentIndent = makeIndent(pIndent)
+    	var indent = pIndent + ifIndent
+    	'''
+    	«parentIndent»if «i.expr.prettyPrint()» then
+    	«i.commands1.prettyPrint(indent)»
+    	«IF i.commands2 != null»
+    	«parentIndent»else
+    	«i.commands2.prettyPrint(indent)»
+    	«ENDIF»
+    	«parentIndent»fi
+    	'''
+    	
     	}
-    	res += "if "
-    	
-    	res += i.expr.prettyPrint(indent)
-    	
-    	res += " then\n"
-    	res += i.commands1.prettyPrint(indent+1)
-    	res+= "\n"
-    	
-    	var currentElse = 0
-    	while (currentElse < indent){
-    		res += "   "
-    		currentElse+=1
-    	}
-    	res += "else\n"
-    	
-    	res += i.commands2.prettyPrint(indent+1)
-    	res+= "\n"
-    	
-		var fi = 0
-    	while (fi < indent){
-    		res += "   "
-    		fi+=1
-    	}
-    	res += "fi"
-    	
-    	return res
-    }
-    
     
     def String prettyPrint(AffectImpl a) {
     	var res = printList(a.vars,", ")
@@ -200,10 +170,10 @@ class WhGenerator extends AbstractGenerator {
      	var res = ""
      	if(list.size > 1){
      		for(i:0..list.size-2){
-    			res+= list.get(i).prettyPrint(0)+delim
+    			res+= list.get(i).prettyPrint()+delim
     		}
     	}
-    	res += list.get(list.size-1).prettyPrint(0)
+    	res += list.get(list.size-1).prettyPrint()
     	return res
     }
     
@@ -216,6 +186,14 @@ class WhGenerator extends AbstractGenerator {
     	}
     	res += list.get(list.size-1)
     	
+    	return res
+    }
+    
+    def String makeIndent(int indent){
+    	var res = ""
+    	for(i:0..indent){
+    		if(i<indent) res+=" ";
+    	}
     	return res
     }
 }
