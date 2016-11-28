@@ -1,0 +1,8 @@
+function t:
+read Var,Var2
+%
+    nop ;
+Var, Var2 := Var1, Var2 ;
+    nop
+%
+write Var1

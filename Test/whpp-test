@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for file in `ls ./test/`
+do
+	#echo $file
+	./whpp -i ./test/$file -o $file\pp
+done

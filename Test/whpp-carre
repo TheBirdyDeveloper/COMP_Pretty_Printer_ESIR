@@ -1,0 +1,20 @@
+#!/bin/bash
+
+for file in `ls ./test/`
+do
+	#echo $file
+	./whpp -i ./test/$file -o $file\pp
+	echo "Test de (whpp $file)^2, difference : "
+	cp  ./src-gen/$file\pp temp.wh
+	./whpp -i temp.wh -o temp.whpp
+	if [`diff  ./src-gen/temp.whpp ./src-gen/$file\pp` = ""]
+	then
+		echo  -e "\033[42m Test OK : \033[0m aucune différence"
+	else
+		echo -e "\033[41m Test not OK: \033[0m "
+		diff ./src-gen/temp.whpp .src-gen/$file\pp
+	fi
+
+	rm temp.wh
+	rm ./src-gen/temp.whpp
+done

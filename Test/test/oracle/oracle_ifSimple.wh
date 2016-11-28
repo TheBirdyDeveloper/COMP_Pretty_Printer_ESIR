@@ -1,0 +1,11 @@
+function f:
+read Var1,Var2
+%
+    Var1 := aaa ;
+    if nil
+       then nop
+       else Var := bbb
+    fi
+%
+write Var1
+

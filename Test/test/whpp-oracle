@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for file in `ls ./test/`
+do
+	#echo $file
+	./whpp -i ./test/$file -o temp.whpp
+
+	if [`diff  ./src-gen/temp.whpp ./oracle/oracle_$file` = ""]
+	then
+		echo  -e "\033[42m $file OK : \033[0m aucune différence"
+	else
+		echo -e "\033[41m $file not OK: \033[0m "
+		diff ./src-gen/temp.whpp ./oracle/oracle_$file
+	fi
+	rm ./src-gen/temp.whpp
+done
