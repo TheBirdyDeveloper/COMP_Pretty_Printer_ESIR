@@ -88,6 +88,9 @@ public class Main {
 		
 		WhGenerator wh = new WhGenerator();
 		wh.doGenerate(resource, fileAccess, context, outputFileName, IF_INDENT, COMMAND_INDENT, WHILE_INDENT, FOR_INDENT);
+	
+		SymTable symtable = new SymTable(resource);
+		System.out.println(symtable.toString());
 	}
 	
 	private static void printMan(){
