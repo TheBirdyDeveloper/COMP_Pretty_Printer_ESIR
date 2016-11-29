@@ -7,7 +7,7 @@ Wh :
   
  
 Program: 
-	 functions+=Function
+	 (functions+=Function)*
 ;
 
 Function:
@@ -60,7 +60,7 @@ Expr:
 ;
 
 ExprSimple:
-	=>str=NIL | varSimple=VARIABLE | sym=SYMBOLE  //| nameFunction=SYMBOLE '(' vars=Input ')'
+	=>str=NIL | varSimple=VARIABLE | sym=SYMBOLE  | '(' nameFunction=SYMBOLE vars=Input ')'//pas de fonction dans les param
 ;
 
 ExprAnd:
