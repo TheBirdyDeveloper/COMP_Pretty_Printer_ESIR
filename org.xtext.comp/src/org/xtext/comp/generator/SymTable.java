@@ -1,7 +1,10 @@
 package org.xtext.comp.generator;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
@@ -20,31 +23,59 @@ public class SymTable {
 
 	TreeIterator<EObject> tree;
 	TreeIterator<EObject> treeF;
-	HashMap<String,FunctionEnvironment> functionMap;
+	HashMap<String,Input> appelTable;//Table des appels
+	HashMap<String,FunctionEnvironment> symTable;
+	List<String> listError;
 	
+
 	public SymTable(Resource resource){
 		this.tree = resource.getAllContents().next().eAllContents();
-		this.functionMap = new HashMap<String,FunctionEnvironment>();		
+		this.appelTable = new HashMap<String,Input>();
+		this.symTable = new HashMap<String,FunctionEnvironment>();
 		this.createFunctionMap();
-		this.functionMap.toString();
+		this.listError= new ArrayList<String>();
+		//System.out.println("\nla fonction "+functionMap.get("a").name+ " a "+functionMap.get("a").nbInput+" paramÃ¨tres");
 	}
-	
+
 	public void createFunctionMap(){
 		while(tree.hasNext()){
 			EObject next = tree.next();
-				if(next instanceof Function){
-				String fName = ((Function) next).getName();
-				if(!(functionMap.containsKey(fName))){
-					functionMap.put(fName, new FunctionEnvironment((Function) next));
-				}else{
-					//Générer une erreur de type (cette fonction existe déjà)
+			if(next instanceof Program){
+				EList<Function> listeFunctions = ((Program)next).getFunctions();
+				for (int j=0; j<listeFunctions.size(); j++){
+					String fName = ((Function) listeFunctions.get(j)).getName();
+					if(!(symTable.containsKey(fName))){
+						symTable.put(fName, new FunctionEnvironment((Function) listeFunctions.get(j), fName));
+					}else{
+						throw new Error("Cette fonction existe dÃ©ja");
+					}
 				}
-			}				
+			}
+			else if(next instanceof ExprSimple){
+				String symbole = ((ExprSimple) next).getSym();
+				Input appel = ((ExprSimple) next).getVars();
+				if (symbole != null){
+					if(!(symTable.containsKey(symbole))){
+						symTable.put(symbole, new FunctionEnvironment((ExprSimple) next));
+					}else{
+						symTable.put(symbole, symTable.get(symbole));
+						symTable.get(symbole).setNbOccur(symTable.get(symbole).nbOccur+1);
+					}
+				}
+				else if (appel != null){
+					appelTable.put(((ExprSimple) next).getNameFunction(), appel);
+				}
+			}
 		}
 	}
 	
-	public String toString(){
-		return functionMap.toString();
+	public List<String> ListError(){
+		
+		return null;
 	}
-	
+
+	public String toStringSymboles(){
+		return this.symTable.toString();
+	}
+
 }
