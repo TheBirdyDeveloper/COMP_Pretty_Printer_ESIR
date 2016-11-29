@@ -3,6 +3,7 @@ package org.xtext.comp.generator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
@@ -25,16 +26,13 @@ public class SymTable {
 	TreeIterator<EObject> treeF;
 	HashMap<String,Input> appelTable;//Table des appels
 	HashMap<String,FunctionEnvironment> symTable;
-	List<String> listError;
-	
+
 
 	public SymTable(Resource resource){
 		this.tree = resource.getAllContents().next().eAllContents();
 		this.appelTable = new HashMap<String,Input>();
 		this.symTable = new HashMap<String,FunctionEnvironment>();
 		this.createFunctionMap();
-		this.listError= new ArrayList<String>();
-		//System.out.println("\nla fonction "+functionMap.get("a").name+ " a "+functionMap.get("a").nbInput+" paramètres");
 	}
 
 	public void createFunctionMap(){
@@ -68,14 +66,36 @@ public class SymTable {
 			}
 		}
 	}
-	
-	public List<String> ListError(){
-		
-		return null;
-	}
 
 	public String toStringSymboles(){
 		return this.symTable.toString();
+	}
+
+	public void toStringError(){
+		Set<String> keys = this.appelTable.keySet();
+		for (String current : keys){
+			if(symTable.get(current) != null){
+				if(appelTable.get(current).getVars().size() != symTable.get(current).nbInput){
+					System.out.println("La fonction "+current+" n'est pas appelée avec le bon nombre de paramètres ("+symTable.get(current).nbInput+" attendus)");
+				}
+			}
+			else{
+				throw new Error("La fonction "+current+" n'a pas été déclarée");
+			}
+		}
+
+		return;
+	}
+
+	public String toStringAppels(){
+		String result ="";
+		result+="{";
+		Set<String> keys = this.appelTable.keySet();
+		for (String current : keys){
+			result+=current + " : "+ appelTable.get(current).getVars().toString()+" ";
+		}
+		result+="}";
+		return result;
 	}
 
 }
