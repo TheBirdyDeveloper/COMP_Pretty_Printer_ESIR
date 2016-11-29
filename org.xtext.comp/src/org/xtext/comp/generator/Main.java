@@ -90,7 +90,9 @@ public class Main {
 		wh.doGenerate(resource, fileAccess, context, outputFileName, IF_INDENT, COMMAND_INDENT, WHILE_INDENT, FOR_INDENT);
 	
 		SymTable symtable = new SymTable(resource);
-		System.out.println(symtable.toString());
+		System.out.println("\nTable des Symboles :\n"+symtable.toStringSymboles());
+		System.out.println("\nTable des Appels :\n"+symtable.toStringAppels());
+		System.out.println("\nGestion des erreurs :\n");symtable.toStringError();
 	}
 	
 	private static void printMan(){
@@ -99,12 +101,12 @@ public class Main {
 		String NAME = "\twhpp - While Pretty Printer";
 		String SYNOPSIS = "\twhpp [OPTIONS]...";
 		String DESC = "\twhpp permet de pretty printer un fichier While";
-		String OPT = "\t\t-i, --input file\n\t\t\tfichier d'entrÈe ‡ pretty printer\n"
+		String OPT = "\t\t-i, --input file\n\t\t\tfichier d'entr√©e √† pretty printer\n"
 				+ "\t\t-o, --output file\n\t\t\tnom du fichier de sortie\n"
 				+ "\t\t-h, --help\n\t\t\taffiche l'aide";
 		String BUGS = "";
 		String SEE = "";
-		String AUTHORS = "\t…crit par ClÈment Guihaire - Pierre Marais - Mathieu Menuet - Marc Perret - Olivier Peurichard";
+		String AUTHORS = "\t√âcrit par Cl√©ment Guihaire - Pierre Marais - Mathieu Menuet - Marc Perret - Olivier Peurichard";
 		
 		man = "NOM\n"+NAME+separation+"SYNOPSIS\n"+SYNOPSIS+separation+"DESCRIPTION\n"+DESC+separation+"OPTIONS\n"+OPT+separation+"BUGS\n"
 				+BUGS+separation+"AUTEURS\n"+AUTHORS+separation+"VOIR AUSSI\n"+SEE;
