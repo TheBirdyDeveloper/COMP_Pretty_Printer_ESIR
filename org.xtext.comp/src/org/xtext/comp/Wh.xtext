@@ -60,7 +60,7 @@ Expr:
 ;
 
 ExprSimple:
-	=>str=NIL | varSym=(VARIABLE | SYMBOLE)
+	=>str=NIL | varSimple=VARIABLE | sym=SYMBOLE  //| nameFunction=SYMBOLE '(' vars=Input ')'
 ;
 
 ExprAnd:
