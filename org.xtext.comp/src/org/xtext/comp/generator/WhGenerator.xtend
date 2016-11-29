@@ -42,7 +42,7 @@ class WhGenerator extends AbstractGenerator {
 	int forIndent;
 	
 	override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
-		//N'est pas utilisée
+		//N'est pas utilisÃ©e
 	}
 	
 	def void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context, String outputName, int ifIndent, int commandIndent, int whileIndent, int forIndent) {
@@ -56,23 +56,23 @@ class WhGenerator extends AbstractGenerator {
 	}
 	
 	def prettyPrint(Program p)'''
-	«FOR f : p.functions»
-	«f.prettyPrint»
-	«ENDFOR»
+	Â«FOR f : p.functionsÂ»
+	Â«f.prettyPrintÂ»
+	Â«ENDFORÂ»
 	'''
 	
 	
 	def prettyPrint(Function f) '''
-            function «f.name»:
-            «f.definition.prettyPrint»
+            function Â«f.nameÂ»:
+            Â«f.definition.prettyPrintÂ»
         '''
                  
     def prettyPrint(Definition d) ''' 
-    	read «d.input.prettyPrint»
+    	read Â«d.input.prettyPrintÂ»
     	%
-    	«d.commands.prettyPrint(commandIndent)»
+    	Â«d.commands.prettyPrint(commandIndent)Â»
     	%
-    	write «d.output.prettyPrint»
+    	write Â«d.output.prettyPrintÂ»
     '''
     
     def prettyPrint(Input i) {
@@ -116,7 +116,7 @@ class WhGenerator extends AbstractGenerator {
        	}
     }
     
-    def prettyPrint( NopImpl n , int pIndent) '''«makeIndent(pIndent)»«n.nop»'''
+    def prettyPrint( NopImpl n , int pIndent) '''Â«makeIndent(pIndent)Â»Â«n.nopÂ»'''
     	
     def String prettyPrint( Expr e){
     	if(e.expr instanceof ExprCons){
@@ -139,7 +139,10 @@ class WhGenerator extends AbstractGenerator {
     	
 	def String prettyPrint( ExprSimpleImpl e){
 		if(e.str == null){
-			return e.varSym
+			if(e.varSimple == null){
+				return e.sym;
+			}
+			return e.varSimple
 		}
 		return e.str
 	}
@@ -160,9 +163,9 @@ class WhGenerator extends AbstractGenerator {
     	var parentIndent = makeIndent(pIndent);
     	var indent = pIndent+whileIndent;
     	'''
-    	«parentIndent»while «w.expr.prettyPrint()» do
-    	«w.cmds.prettyPrint(indent)»
-    	«parentIndent»od
+    	Â«parentIndentÂ»while Â«w.expr.prettyPrint()Â» do
+    	Â«w.cmds.prettyPrint(indent)Â»
+    	Â«parentIndentÂ»od
     	'''
     }
     
@@ -170,9 +173,9 @@ class WhGenerator extends AbstractGenerator {
     	var parentIndent = makeIndent(pIndent);
     	var indent = pIndent+whileIndent;
     	'''
-    	«parentIndent»while «w.expr.prettyPrint()» do
-    	«w.cmds.prettyPrint(indent)»
-    	«parentIndent»od
+    	Â«parentIndentÂ»while Â«w.expr.prettyPrint()Â» do
+    	Â«w.cmds.prettyPrint(indent)Â»
+    	Â«parentIndentÂ»od
     	'''
     }
     
@@ -180,19 +183,19 @@ class WhGenerator extends AbstractGenerator {
     	var parentIndent = makeIndent(pIndent)
     	var indent = pIndent + ifIndent
     	'''
-    	«parentIndent»if «i.expr.prettyPrint()» then
-    	«i.commands1.prettyPrint(indent)»
-    	«IF i.commands2 != null»
-    	«parentIndent»else
-    	«i.commands2.prettyPrint(indent)»
-    	«ENDIF»
-    	«parentIndent»fi
+    	Â«parentIndentÂ»if Â«i.expr.prettyPrint()Â» then
+    	Â«i.commands1.prettyPrint(indent)Â»
+    	Â«IF i.commands2 != nullÂ»
+    	Â«parentIndentÂ»else
+    	Â«i.commands2.prettyPrint(indent)Â»
+    	Â«ENDIFÂ»
+    	Â«parentIndentÂ»fi
     	'''
     	
     	}
     
     def String prettyPrint(AffectImpl a,int pIndent) '''
-    «makeIndent(pIndent)»«printList(a.vars,", ")» := «printList2(a.exprs,", ")»'''
+    Â«makeIndent(pIndent)Â»Â«printList(a.vars,", ")Â» := Â«printList2(a.exprs,", ")Â»'''
     
     
     def String prettyPrint (String s){
