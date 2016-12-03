@@ -2,6 +2,7 @@ package org.xtext.comp.generator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,15 +23,17 @@ import com.google.inject.Provider;
 public class SymTable {
 
 
-	TreeIterator<EObject> tree;
-	TreeIterator<EObject> treeF;
-	HashMap<String,Input> appelTable;//Table des appels
-	HashMap<String,FunctionEnvironment> symTable;
+	private TreeIterator<EObject> tree;
+	private TreeIterator<EObject> treeF;
+	//HashMap<String,Input> appelTable;//Table des appels
+	private Set<Paire> appelTable;
+	private HashMap<String,FunctionEnvironment> symTable;
 
 
 	public SymTable(Resource resource){
 		this.tree = resource.getAllContents().next().eAllContents();
-		this.appelTable = new HashMap<String,Input>();
+		//this.appelTable = new HashMap<String,Input>();
+		this.appelTable =new HashSet<Paire>();
 		this.symTable = new HashMap<String,FunctionEnvironment>();
 		this.createFunctionMap();
 	}
@@ -61,7 +64,7 @@ public class SymTable {
 					}
 				}
 				else if (appel != null){
-					appelTable.put(((ExprSimple) next).getNameFunction(), appel);
+					appelTable.add(new Paire(((ExprSimple) next).getNameFunction(), appel));
 				}
 			}
 		}
@@ -72,15 +75,14 @@ public class SymTable {
 	}
 
 	public void toStringError(){
-		Set<String> keys = this.appelTable.keySet();
-		for (String current : keys){
-			if(symTable.get(current) != null){
-				if(appelTable.get(current).getVars().size() != symTable.get(current).nbInput){
-					System.out.println("La fonction "+current+" n'est pas appelée avec le bon nombre de paramètres ("+symTable.get(current).nbInput+" attendus)");
+		for (Paire current : appelTable){
+			if(symTable.get(current.getName()) != null){
+				if((current).getInputs().getVars().size() != symTable.get(current.getName()).nbInput){
+					System.out.println("La fonction "+current.getName()+" n'est pas appelée avec le bon nombre de paramètres ("+symTable.get(current.getName()).nbInput+" attendus)");
 				}
 			}
 			else{
-				throw new Error("La fonction "+current+" n'a pas été déclarée");
+				throw new Error("La fonction "+current.getName()+" n'a pas été déclarée");
 			}
 		}
 
@@ -90,9 +92,10 @@ public class SymTable {
 	public String toStringAppels(){
 		String result ="";
 		result+="{";
-		Set<String> keys = this.appelTable.keySet();
-		for (String current : keys){
-			result+=current + " : "+ appelTable.get(current).getVars().toString()+" ";
+		if(!appelTable.isEmpty()){
+			for (Paire current : appelTable){
+				result+=current.getName() + " : "+ current.getInputs().getVars().toString()+" ";
+			}
 		}
 		result+="}";
 		return result;

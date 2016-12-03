@@ -93,6 +93,10 @@ public class Main {
 		System.out.println("\nTable des Symboles :\n"+symtable.toStringSymboles());
 		System.out.println("\nTable des Appels :\n"+symtable.toStringAppels());
 		System.out.println("\nGestion des erreurs :\n");symtable.toStringError();
+		System.out.println("\n");
+		
+		
+		
 	}
 	
 	private static void printMan(){

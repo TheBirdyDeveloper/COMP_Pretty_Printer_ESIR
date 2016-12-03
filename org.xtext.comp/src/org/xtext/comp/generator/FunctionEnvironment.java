@@ -3,6 +3,9 @@ package org.xtext.comp.generator;
 import java.util.HashMap;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.TreeIterator;
+import org.eclipse.emf.ecore.EObject;
+import org.xtext.comp.wh.Affect;
 import org.xtext.comp.wh.ExprSimple;
 import org.xtext.comp.wh.Function;
 import org.xtext.comp.wh.Input;
@@ -11,6 +14,7 @@ import org.xtext.comp.wh.Program;
 
 public class FunctionEnvironment {
 
+	HashMap<String,Integer> inputList;
 	HashMap<String,Integer> variableList;
 	int nbInput;
 	int nbOutput;
@@ -18,28 +22,30 @@ public class FunctionEnvironment {
 	int nbOccur;
 
 	public FunctionEnvironment(Function f, String name){
-		this.variableList = new HashMap<String,Integer>();
+		this.inputList = new HashMap<String,Integer>();
 		this.nbInput = 0;
 		this.nbOutput = 0;
-		this.createVariableList(f);
+		this.createinputList(f);
 		this.name= name;
+		this.variableList = new HashMap<String,Integer>();
+		this.createVariableList(f);
 
-
+		System.out.println("Symboles de "+name+" :\n"+variableList.toString());
 
 	}
 	public FunctionEnvironment(ExprSimple s){
+		inputList=new HashMap<String,Integer>();
 		this.nbOccur = 0;
 	}
 
-	public void createVariableList(Function f){
+	public void createinputList(Function f){
 		EList<String> varListInput = null;
 		if((f.getDefinition().getInput().getVars().size()>0)){
 			varListInput = (f.getDefinition().getInput().getVars());
 			for(int i = 0; i<(varListInput.size()); i++){
 				String varName = varListInput.get(i);
-				if(!(variableList.containsKey(varName))){
-					System.out.println("L'input "+nbInput+" est : "+varName);
-					variableList.put(varName, 0);
+				if(!(inputList.containsKey(varName))){
+					inputList.put(varName, 1);
 					nbInput++;
 				}else{
 					throw new Error("Cette variable existe déja");
@@ -51,12 +57,40 @@ public class FunctionEnvironment {
 			varListOutput = (f.getDefinition().getOutput().getVars());
 			for(int i = 0; i<(varListOutput.size()); i++){
 				String varName = varListOutput.get(i);
-				if(variableList.containsKey(varName)){
-					System.out.println("L'output "+nbOutput+" est : "+varName);
+				if(inputList.containsKey(varName)){
 					nbOutput++;
 				}else{
-					throw new Error("Cette variable n'a pas été définie"); // Ou simplement l'ajouter à nil
-					//variableList.put(varName, null);
+					inputList.put(varName, 0);
+				}
+			}
+		}
+	}
+
+	public void createVariableList(Function f){
+		TreeIterator<EObject> tree = f.eAllContents();
+
+		while(tree.hasNext()){
+			EObject next = tree.next();
+			if(next instanceof ExprSimple){
+				String var = ((ExprSimple) next).getVarSimple();
+				if (var != null){
+					if(!(variableList.containsKey(var))){
+						variableList.put(var, 1);
+					}else{
+						variableList.put(var, variableList.get(var)+1);;
+					}
+				}
+			}
+			if(next instanceof Affect){
+				EList<String> vars = ((Affect) next).getVars();
+				for(String current : vars){
+					if (current != null){
+						if(!(variableList.containsKey(current))){
+							variableList.put(current, 1);
+						}else{
+							variableList.put(current, variableList.get(current)+1);;
+						}
+					}
 				}
 			}
 		}
@@ -67,7 +101,7 @@ public class FunctionEnvironment {
 	}
 
 	public String toString(){
-		return variableList.toString();
+		return inputList.toString();
 	}
 
 
