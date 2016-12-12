@@ -6,12 +6,12 @@ import org.xtext.comp.wh.Output;
 
 public class Code {
 
-	String name;
+	private String name;
 	int inputs;
 	int outputs;
 	Commands code;
 	
-	public Code (String s, int inputs, int ouputs, Commands code){
+	public Code (String s, int inputs, int outputs, Commands code){
 		name = s;
 		this.inputs = inputs;
 		this.outputs = outputs;
@@ -52,6 +52,6 @@ public class Code {
 	}
 	
 	public String toString(){
-		return name+" : "+inputs+outputs+code.toString();
+		return getName()+" : "+inputs+outputs+code.toString();
 	}
 }

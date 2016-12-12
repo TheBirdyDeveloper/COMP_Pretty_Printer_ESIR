@@ -6,6 +6,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
 import org.xtext.comp.wh.Affect;
+import org.xtext.comp.wh.Commands;
 import org.xtext.comp.wh.ExprSimple;
 import org.xtext.comp.wh.Function;
 import org.xtext.comp.wh.Input;
@@ -14,12 +15,14 @@ import org.xtext.comp.wh.Program;
 
 public class FunctionEnvironment {
 
+	boolean isfunction;
 	HashMap<String,Integer> inputList;
 	HashMap<String,Integer> variableList;
 	int nbInput;
 	int nbOutput;
 	String name;
 	int nbOccur;
+	Commands commands;
 
 	public FunctionEnvironment(Function f, String name){
 		this.inputList = new HashMap<String,Integer>();
@@ -29,13 +32,21 @@ public class FunctionEnvironment {
 		this.name= name;
 		this.variableList = new HashMap<String,Integer>();
 		this.createVariableList(f);
+		this.commands = ((Function)f).getDefinition().getCommands();
+		isfunction = true;
+	
 
 		System.out.println("Symboles de "+name+" :\n"+variableList.toString());
 
 	}
+	
+	public boolean isFunction(){
+		return isfunction;
+	}
 	public FunctionEnvironment(ExprSimple s){
 		inputList=new HashMap<String,Integer>();
 		this.nbOccur = 0;
+		isfunction = false;
 	}
 
 	public void createinputList(Function f){
@@ -103,6 +114,16 @@ public class FunctionEnvironment {
 	public String toString(){
 		return inputList.toString();
 	}
+	public int nbInput(){
+		return this.nbInput;
+	}
+	
+	public int nbOutput(){
+		return this.nbOutput;
+	}
 
+	public Commands getCommands(){
+		return commands;
+	}
 
 }

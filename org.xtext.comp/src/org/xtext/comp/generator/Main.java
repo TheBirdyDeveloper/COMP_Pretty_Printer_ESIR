@@ -35,7 +35,7 @@ public class Main {
 	private static short FOR_INDENT = DEFAULT_FOR_INDENT;
 	
 	private static final String DEFAULT_NAME = "f.whpp";
-	private static String inputFileName;
+	private static String inputFileName = "test.wh";
 	private static String outputFileName = DEFAULT_NAME;
 	
 	private static final CommandLineParser parser = new GnuParser();
@@ -95,6 +95,8 @@ public class Main {
 		System.out.println("\nGestion des erreurs :\n");symtable.toStringError();
 		System.out.println("\n");
 		
+		GenTable gentable = new GenTable(symtable);
+		System.out.println(gentable.nomsToString());
 		
 		
 	}

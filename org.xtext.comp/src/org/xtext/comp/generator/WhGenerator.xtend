@@ -25,7 +25,6 @@ import org.xtext.comp.wh.impl.ExprAndImpl
 import org.xtext.comp.wh.impl.ExprConsImpl
 import org.xtext.comp.wh.impl.ExprOrImpl
 import org.xtext.comp.wh.impl.ExprSimpleImpl
-import org.xtext.comp.wh.impl.ForImpl
 import org.xtext.comp.wh.impl.IfImpl
 import org.xtext.comp.wh.impl.NopImpl
 import org.xtext.comp.wh.impl.WhileImpl
@@ -106,14 +105,6 @@ class WhGenerator extends AbstractGenerator {
        	if( c.cmd instanceof IfImpl ) {
     		return (c.cmd as IfImpl).prettyPrint(pIndent)
        	}
-       	
-       	if(c.cmd instanceof WhileImpl) {
-       		return (c.cmd as WhileImpl).prettyPrint(pIndent)
-       	}
-       	
-       	if(c.cmd instanceof ForImpl){
-       		return (c.cmd as ForImpl).prettyPrint(pIndent)
-       	}
     }
     
     def prettyPrint( NopImpl n , int pIndent) '''«makeIndent(pIndent)»«n.nop»'''
@@ -158,26 +149,7 @@ class WhGenerator extends AbstractGenerator {
 	def String prettyPrint(ExprConsImpl e){
 		return "(cons "+(e.arg1).prettyPrint()+ " " + (e.arg2).prettyPrint()+")"
 	}
-    	
-    def String prettyPrint(WhileImpl w, int pIndent){
-    	var parentIndent = makeIndent(pIndent);
-    	var indent = pIndent+whileIndent;
-    	'''
-    	«parentIndent»while «w.expr.prettyPrint()» do
-    	«w.cmds.prettyPrint(indent)»
-    	«parentIndent»od
-    	'''
-    }
-    
-    def String prettyPrint(ForImpl w, int pIndent){
-    	var parentIndent = makeIndent(pIndent);
-    	var indent = pIndent+whileIndent;
-    	'''
-    	«parentIndent»while «w.expr.prettyPrint()» do
-    	«w.cmds.prettyPrint(indent)»
-    	«parentIndent»od
-    	'''
-    }
+
     
     def String prettyPrint( IfImpl i, int pIndent){
     	var parentIndent = makeIndent(pIndent)

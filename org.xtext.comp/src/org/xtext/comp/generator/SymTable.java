@@ -38,6 +38,12 @@ public class SymTable {
 		this.createFunctionMap();
 	}
 
+	public FunctionEnvironment get(String key){
+		return symTable.get(key);
+	}
+	public Set<String> getNames(){
+		return symTable.keySet();
+	}
 	public void createFunctionMap(){
 		while(tree.hasNext()){
 			EObject next = tree.next();
