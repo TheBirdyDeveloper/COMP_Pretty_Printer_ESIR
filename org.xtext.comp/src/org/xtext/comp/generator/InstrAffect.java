@@ -14,5 +14,9 @@ public class InstrAffect extends Instr {
 		this.varLecture1 = "_";
 		this.varLecture2 = "_";
 	}
+	
+	public String toString(){
+		return "<"+this.codop+","+this.varEcriture+","+this.varLecture1+","+this.varLecture2+">";
+	}
 
 }

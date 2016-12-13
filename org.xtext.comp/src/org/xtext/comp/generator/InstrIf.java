@@ -17,4 +17,7 @@ public class InstrIf extends Instr{
 		this.varLecture2 = "_";
 	}
 	
+	public String toString(){
+		return "<"+this.codop+","+this.varEcriture+","+this.varLecture1+","+this.varLecture2+">";
+	}
 }

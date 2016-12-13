@@ -58,20 +58,21 @@ public class GenTable {
 			Iterator<Command> iteC = commands.iterator();
 			while(iteC.hasNext()){
 				Command nextCommand = iteC.next();
+				System.out.println(nextCommand.getCmd());
 				if((nextCommand.getCmd()) instanceof Nop){
 				    code3Adr.add(new InstrNop(null, null, null, null));
 				    }
-				else if(nextCommand instanceof Affect){
+				else if(nextCommand.getCmd() instanceof Affect){
 					System.out.println("Affect");
 					code3Adr.add(new InstrAffect(null, null, null, null));
 				}
-				else if(nextCommand instanceof While){
+				else if(nextCommand.getCmd() instanceof While){
 					code3Adr.add(new InstrWhile(null, null, null, null));
 				}
-				else if(nextCommand instanceof If){
+				else if(nextCommand.getCmd() instanceof If){
 					code3Adr.add(new InstrIf(null, null, null, null));
 				}    
-				else if(nextCommand instanceof For){
+				else if(nextCommand.getCmd() instanceof For){
 					
 				}
 			}
