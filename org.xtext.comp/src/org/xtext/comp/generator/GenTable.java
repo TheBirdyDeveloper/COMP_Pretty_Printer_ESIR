@@ -1,6 +1,7 @@
 package org.xtext.comp.generator;
 
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -20,15 +21,15 @@ public class GenTable {
 	SymTable table_m;
 	List<String> listFonctions;
 	List<Code> funDecl;
-	List<Instr> code3Adr;
+	HashMap<String,List<Instr>> listCode3Adr;
 	
-	public GenTable (SymTable table){
+	GenTable (SymTable table){
 		table_m = table;
 		listFonctions=new LinkedList<String>();
 		funDecl = new LinkedList<Code>();
-		code3Adr = new LinkedList<Instr>();
+		listCode3Adr = new HashMap<String,List<Instr>>();
 		this.initialize();
-		this.chooseCommand();
+		this.parseFunDecl();
 	}
 	
 	private void initialize() {
@@ -43,40 +44,59 @@ public class GenTable {
 
 	public String nomsToString(){
 		return "\n Liste de codes (nom, inputs, outputs, code) : "+funDecl.size()+"\n"+funDecl.toString()
-				+"\n\nCode 3 adresses : "+code3Adr.size()+"\n"+code3Adr.toString();
+				+"\n\nCode 3 adresses : "+listCode3Adr.size()+"\n"+listCode3Adr.toString();
 	}
 	
-	public void chooseCommand() {
+	/*
+	 * Fonction qui parcourir la liste de Code et appelle la méthode chooseCommand pour chaque "Commands" (aka chaque code de fonction)
+	 */
+	public void parseFunDecl(){
 		//On crée un itérateur sur les "Code" -> On récupère les "Commands" de chaque fonction
 		Iterator<Code> ite = funDecl.iterator();
 		while(ite.hasNext()) {
 			Code nextCode = ite.next();
-			//On récupère les "Command" du "Commands"
+			//On récupère les "Command" du "Commands" originel (celui de la fonction)
 			EList<Command> commands = ((Commands)nextCode.getCode()).getCommands();
-			System.out.println("La taille des commandes de la fonction : "+commands.size());
-			//On crée un itérateur sur les "Commands" de chaque fonction -> On récupère les "Command" de chaque "Commands"
-			Iterator<Command> iteC = commands.iterator();
-			while(iteC.hasNext()){
-				Command nextCommand = iteC.next();
-				System.out.println(nextCommand.getCmd());
-				if((nextCommand.getCmd()) instanceof Nop){
-				    code3Adr.add(new InstrNop(null, null, null, null));
-				    }
-				else if(nextCommand.getCmd() instanceof Affect){
-					System.out.println("Affect");
-					code3Adr.add(new InstrAffect(null, null, null, null));
-				}
-				else if(nextCommand.getCmd() instanceof While){
-					code3Adr.add(new InstrWhile(null, null, null, null));
-				}
-				else if(nextCommand.getCmd() instanceof If){
-					code3Adr.add(new InstrIf(null, null, null, null));
-				}    
-				else if(nextCommand.getCmd() instanceof For){
-					
-				}
+			this.createInstr(nextCode.getName(),commands,null);
+		}
+	}
+	
+	public void createInstr(String name,EList<Command> listCommands, List<Instr> code3Adr) {
+		if(code3Adr==null)	
+			code3Adr = new LinkedList<Instr>();
+		
+		this.parseCommands(listCommands, code3Adr);
+			
+		listCode3Adr.put(name, code3Adr);
+	}
+	
+	public void parseCommands(EList<Command> listCommands, List<Instr> code3Adr){
+		
+		EList<Command> tmpCommands = listCommands;
+		//On crée un itérateur sur les "Commands" de chaque fonction -> On récupère les "Command" de chaque "Commands"
+		Iterator<Command> iteC = tmpCommands.iterator();
+		while(iteC.hasNext()){
+			Command nextCommand = iteC.next();
+			if((nextCommand.getCmd()) instanceof Nop){
+			    code3Adr.add(new InstrNop(null, null, null, null));
+			}
+			else if(nextCommand.getCmd() instanceof Affect){
+				code3Adr.add(new InstrAffect(null, null, null, null));		
+			}
+			else if(nextCommand.getCmd() instanceof While){
+				code3Adr.add(new InstrWhile(null, null, null, null));
+			}
+			else if(nextCommand.getCmd() instanceof If){
+				code3Adr.add(new InstrIf(null, null, null, null));
+				this.parseCommands( ((If) nextCommand.getCmd()).getCommands1().getCommands(),code3Adr );
+			    this.parseCommands( ((If) nextCommand.getCmd()).getCommands2().getCommands(),code3Adr );
+			}    
+			else if(nextCommand.getCmd() instanceof For){
+				
 			}
 		}
 		
 	}
-}
+		
+	}
+
