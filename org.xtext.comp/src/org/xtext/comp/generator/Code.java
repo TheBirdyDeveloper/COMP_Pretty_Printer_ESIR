@@ -6,7 +6,7 @@ import org.xtext.comp.wh.Output;
 
 public class Code {
 
-	private String name;
+	String name;
 	int inputs;
 	int outputs;
 	Commands code;
@@ -15,7 +15,10 @@ public class Code {
 		name = s;
 		this.inputs = inputs;
 		this.outputs = outputs;
-		this.code = code;
+		if(code!=null)
+			this.code = code;
+		else
+			System.out.println("Ici c'est null");
 	}
 	
 	public void setName(String s){
@@ -52,6 +55,6 @@ public class Code {
 	}
 	
 	public String toString(){
-		return getName()+" : "+inputs+outputs+code.toString();
+		return "name : "+name+" | Nb inputs/outputs : "+inputs+outputs+ " | Code : "+code.toString()+"\n";
 	}
 }
